@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Two Travel · Guest Concierge · Reports Portal</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --sand: #F5F0E8; --warm-white: #FDFAF5; --ink: #1A1714; --ink-soft: #3D3730; --ink-muted: #7A7169;
+    --gold: #C9A84C; --gold-light: #E8D5A3; --gold-pale: #F7EFD8;
+    --teal: #2A6B6E; --teal-pale: #E8F4F5;
+    --coral: #C4513A; --coral-pale: #FAE8E4;
+    --green: #3D7A5C; --green-pale: #E5F2EC;
+    --mde: #7C5C3E; --border: #E0D8CC; --amber: #92660A;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--warm-white); color: var(--ink); min-height: 100vh; }
+
+  /* HEADER */
+  .header { background: var(--ink); padding: 52px 60px 44px; position: relative; overflow: hidden; }
+  .header::before { content: ''; position: absolute; top: -120px; right: -80px; width: 500px; height: 500px; border-radius: 50%; background: radial-gradient(circle, rgba(201,168,76,0.12) 0%, transparent 70%); pointer-events:none; }
+  .header::after { content: ''; position: absolute; bottom: -80px; left: -60px; width: 300px; height: 300px; border-radius: 50%; background: radial-gradient(circle, rgba(42,107,110,0.15) 0%, transparent 70%); pointer-events:none; }
+  .header-inner { max-width: 1100px; margin: 0 auto; position: relative; z-index: 1; }
+  .header-logo { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.3em; text-transform: uppercase; color: var(--gold); margin-bottom: 20px; }
+  .header-title { font-family: 'Cormorant Garamond', serif; font-size: 54px; font-weight: 300; color: var(--warm-white); line-height: 1; margin-bottom: 10px; }
+  .header-title em { font-style: italic; color: var(--gold); }
+  .header-sub { font-size: 13px; color: #8A8078; margin-bottom: 32px; }
+  .header-meta { display: flex; gap: 40px; }
+  .header-meta-item label { display: block; font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase; color: #4A4440; margin-bottom: 3px; }
+  .header-meta-item span { font-size: 12px; color: #9A9088; }
+
+  /* NAV TABS */
+  .nav { background: white; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100; }
+  .nav-inner { max-width: 1100px; margin: 0 auto; padding: 0 60px; display: flex; gap: 0; }
+  .nav-tab { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; padding: 16px 24px; cursor: pointer; border-bottom: 2px solid transparent; color: var(--ink-muted); transition: all 0.15s; text-decoration: none; display: block; }
+  .nav-tab:hover { color: var(--ink); }
+  .nav-tab.active { color: var(--teal); border-bottom-color: var(--teal); }
+
+  /* MAIN */
+  .main { max-width: 1100px; margin: 0 auto; padding: 52px 60px 80px; }
+
+  /* SECTION */
+  .section { display: none; }
+  .section.active { display: block; }
+  .section-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
+  .section-label { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.25em; text-transform: uppercase; color: var(--ink-muted); }
+  .section-desc { font-size: 12px; color: var(--ink-muted); margin-bottom: 28px; }
+
+  /* SUMMARY STRIP */
+  .summary-strip { background: var(--gold-pale); border: 1px solid var(--gold-light); border-radius: 12px; padding: 24px 28px; margin-bottom: 40px; display: grid; grid-template-columns: repeat(4,1fr); gap: 20px; }
+  .strip-label { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--amber); margin-bottom: 4px; }
+  .strip-value { font-family: 'Cormorant Garamond', serif; font-size: 28px; font-weight: 300; color: var(--ink); line-height: 1; }
+  .strip-sub { font-size: 10px; color: var(--ink-muted); margin-top: 2px; }
+
+  /* REPORTS GRID */
+  .reports-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 52px; }
+
+  /* REPORT CARD */
+  .report-card { background: white; border: 1px solid var(--border); border-radius: 14px; overflow: hidden; transition: box-shadow 0.2s, transform 0.2s; text-decoration: none; color: inherit; display: block; }
+  .report-card.clickable:hover { box-shadow: 0 8px 32px rgba(26,23,20,0.1); transform: translateY(-2px); }
+  .report-card.pending { opacity: 0.65; cursor: default; }
+
+  /* CARD TOP - KPI style */
+  .card-top-kpi { background: var(--ink); padding: 22px 22px 18px; position: relative; overflow: hidden; min-height: 90px; }
+  .card-top-kpi::after { content: ''; position: absolute; bottom: -24px; right: -24px; width: 80px; height: 80px; border-radius: 50%; background: rgba(201,168,76,0.1); }
+  /* CARD TOP - Concierge style */
+  .card-top-concierge { background: linear-gradient(135deg, #1E3A3A 0%, #2A6B6E 100%); padding: 22px 22px 18px; position: relative; overflow: hidden; min-height: 90px; }
+  .card-top-concierge::after { content: ''; position: absolute; bottom: -24px; right: -24px; width: 80px; height: 80px; border-radius: 50%; background: rgba(255,255,255,0.05); }
+
+  .card-month { font-family: 'Cormorant Garamond', serif; font-size: 30px; font-weight: 300; color: var(--warm-white); line-height: 1; }
+  .card-year { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.1em; color: rgba(255,255,255,0.25); margin-top: 3px; }
+  .card-badge { position: absolute; top: 14px; right: 14px; font-family: 'DM Mono', monospace; font-size: 8px; letter-spacing: 0.08em; text-transform: uppercase; padding: 3px 8px; border-radius: 100px; }
+  .badge-complete { background: rgba(201,168,76,0.2); color: var(--gold); }
+  .badge-partial { background: rgba(61,122,92,0.2); color: #7DCCA0; }
+  .badge-pending { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.25); }
+
+  .card-body { padding: 18px 20px; }
+  .card-kpi-row { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 14px; }
+  .kpi-chip { font-family: 'DM Mono', monospace; font-size: 8px; padding: 2px 7px; border-radius: 100px; background: var(--sand); color: var(--ink-muted); }
+  .kpi-chip.on { background: var(--green-pale); color: var(--green); }
+  .kpi-chip.risk { background: var(--coral-pale); color: var(--coral); }
+
+  .card-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+  .stat-label { font-family: 'DM Mono', monospace; font-size: 8px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-muted); margin-bottom: 2px; }
+  .stat-value { font-family: 'Cormorant Garamond', serif; font-size: 20px; font-weight: 400; color: var(--ink); line-height: 1; }
+
+  .card-footer { border-top: 1px solid var(--sand); padding-top: 12px; display: flex; justify-content: space-between; align-items: center; }
+  .card-link { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--teal); }
+  .card-date { font-family: 'DM Mono', monospace; font-size: 9px; color: var(--ink-muted); }
+  .pending-msg { padding: 20px; text-align: center; color: var(--ink-muted); font-size: 11px; }
+
+  /* DIVIDER */
+  .ornament { text-align: center; color: var(--gold-light); font-size: 16px; letter-spacing: 8px; margin: 48px 0; }
+
+  /* FOOTER */
+  .site-footer { background: var(--ink); padding: 28px 60px; display: flex; justify-content: space-between; align-items: center; }
+  .footer-logo { font-family: 'Cormorant Garamond', serif; font-size: 16px; color: var(--gold); }
+  .footer-text { font-family: 'DM Mono', monospace; font-size: 9px; color: #4A4440; letter-spacing: 0.08em; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-inner">
+    <div class="header-logo">Two Travel · Guest Concierge · Colombia</div>
+    <div class="header-title">Reports <em>Portal</em></div>
+    <div class="header-sub">KPI Reports · Concierge Monthly Reports · Cartagena &amp; Medellín · 2026</div>
+    <div class="header-meta">
+      <div class="header-meta-item"><label>Concierge Team</label><span>Carolina · Alia · Daniela</span></div>
+      <div class="header-meta-item"><label>Submitted to</label><span>Ray</span></div>
+      <div class="header-meta-item"><label>Last updated</label><span>June 2026</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- NAV -->
+<div class="nav">
+  <div class="nav-inner">
+    <a class="nav-tab active" onclick="switchTab('about', this)" href="#">About</a>
+    <a class="nav-tab" onclick="switchTab('kpi', this)" href="#">KPI Reports</a>
+    <a class="nav-tab" onclick="switchTab('concierge', this)" href="#">Concierge Reports</a>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- ══ KPI REPORTS TAB ══ -->
+  <div class="section" id="tab-kpi">
+
+    <div class="summary-strip">
+      <div>
+        <div class="strip-label">Reports Published</div>
+        <div class="strip-value">2</div>
+        <div class="strip-sub">Jan + May · Jun in progress</div>
+      </div>
+      <div>
+        <div class="strip-label">Total Clients Served</div>
+        <div class="strip-value">24</div>
+        <div class="strip-sub">Jan: 15 · May: 9</div>
+      </div>
+      <div>
+        <div class="strip-label">Guest Satisfaction</div>
+        <div class="strip-value">5.0 ★</div>
+        <div class="strip-sub">May WhatsApp avg · All ★★★★★</div>
+      </div>
+      <div>
+        <div class="strip-label">KPI Tracking</div>
+        <div class="strip-value">Full</div>
+        <div class="strip-sub">All 5 KPIs active from May 2026</div>
+      </div>
+    </div>
+
+    <div class="section-header">
+      <div class="section-label">KPI Reports · 2026</div>
+      <span style="font-family:'DM Mono',monospace;font-size:9px;color:var(--ink-muted)">Most recent first</span>
+    </div>
+    <div class="section-desc">Full monthly KPI analysis — Revenue, Planning, Satisfaction, Error Tracking, and Billing. Click any published report to open it.</div>
+
+    <!-- QUARTERLY REPORTS -->
+    <div style="margin-bottom:12px">
+      <div class="section-label" style="margin-bottom:8px">Quarterly Reports · 2026</div>
+      <div class="section-desc">Combined view across 3–4 months. Includes trends, comparisons, and cumulative KPI progress.</div>
+    </div>
+    <div class="reports-grid" style="margin-bottom:52px">
+
+      <!-- Q1: Jan-Apr -->
+      <div class="report-card pending">
+        <div class="card-top-kpi" style="background:linear-gradient(135deg,#1A1714 0%,#2A3A2A 100%)">
+          <div class="card-badge badge-pending">Pending</div>
+          <div class="card-month" style="font-size:22px;margin-top:4px">Q1 · Jan–Apr</div>
+          <div class="card-year">2026</div>
+        </div>
+        <div class="pending-msg" style="padding:16px 20px;text-align:left;font-size:11px;color:var(--ink-muted)">
+          <div style="font-family:'DM Mono',monospace;font-size:9px;text-transform:uppercase;color:var(--ink-muted);margin-bottom:6px">Includes</div>
+          January · February · March · April<br><br>
+          <span style="color:var(--coral)">Available once Apr report is complete</span>
+        </div>
+      </div>
+
+      <!-- Q2: May-Aug -->
+      <div class="report-card pending">
+        <div class="card-top-kpi" style="background:linear-gradient(135deg,#1A1714 0%,#2A3A2A 100%)">
+          <div class="card-badge badge-pending">Pending</div>
+          <div class="card-month" style="font-size:22px;margin-top:4px">Q2 · May–Aug</div>
+          <div class="card-year">2026</div>
+        </div>
+        <div class="pending-msg" style="padding:16px 20px;text-align:left;font-size:11px;color:var(--ink-muted)">
+          <div style="font-family:'DM Mono',monospace;font-size:9px;text-transform:uppercase;color:var(--ink-muted);margin-bottom:6px">Includes</div>
+          May · June · July · August<br><br>
+          <span style="color:var(--coral)">Available once Aug report is complete</span>
+        </div>
+      </div>
+
+      <!-- Q3: Sep-Dec -->
+      <div class="report-card pending">
+        <div class="card-top-kpi" style="background:linear-gradient(135deg,#1A1714 0%,#2A3A2A 100%)">
+          <div class="card-badge badge-pending">Pending</div>
+          <div class="card-month" style="font-size:22px;margin-top:4px">Q3 · Sep–Dec</div>
+          <div class="card-year">2026</div>
+        </div>
+        <div class="pending-msg" style="padding:16px 20px;text-align:left;font-size:11px;color:var(--ink-muted)">
+          <div style="font-family:'DM Mono',monospace;font-size:9px;text-transform:uppercase;color:var(--ink-muted);margin-bottom:6px">Includes</div>
+          September · October · November · December<br><br>
+          <span style="color:var(--coral)">Available once Dec report is complete</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- MONTHLY REPORTS -->
+    <div style="margin-bottom:12px">
+      <div class="section-label" style="margin-bottom:8px">Monthly Reports · 2026</div>
+      <div class="section-desc">Full monthly KPI analysis — Revenue, Planning, Satisfaction, Error Tracking, and Billing.</div>
+    </div>
+    <div class="reports-grid">
+
+      <!-- JUN 2026 - In progress -->
+      <div class="report-card pending">
+        <div class="card-top-kpi">
+          <div class="card-badge" style="background:rgba(201,168,76,0.15);color:var(--gold)">In Progress</div>
+          <div class="card-month">June</div>
+          <div class="card-year">2026</div>
+        </div>
+        <div class="pending-msg">Report in preparation</div>
+      </div>
+
+      <!-- MAY 2026 -->
+      <a class="report-card clickable" href="KPI_Report_May_2026_v1.html">
+        <div class="card-top-kpi">
+          <div class="card-badge badge-complete">Complete</div>
+          <div class="card-month">May</div>
+          <div class="card-year">2026</div>
+        </div>
+        <div class="card-body">
+          <div class="card-kpi-row">
+            <span class="kpi-chip on">KPI 1 ✓</span>
+            <span class="kpi-chip risk">KPI 2 38%</span>
+            <span class="kpi-chip on">KPI 3 5.0★</span>
+            <span class="kpi-chip on">KPI 4 ✓</span>
+            <span class="kpi-chip risk">KPI 5 67%</span>
+          </div>
+          <div class="card-stats">
+            <div><div class="stat-label">Clients</div><div class="stat-value">9</div></div>
+            <div><div class="stat-label">Satisfaction</div><div class="stat-value">5.0 ★</div></div>
+            <div><div class="stat-label">Concierge Rev.</div><div class="stat-value">$23,157</div></div>
+            <div><div class="stat-label">Services</div><div class="stat-value">89</div></div>
+          </div>
+          <div class="card-footer">
+            <span class="card-link">Open Report →</span>
+            <span class="card-date">Jun 2026</span>
+          </div>
+        </div>
+      </a>
+
+      <!-- APR 2026 -->
+      <div class="report-card pending">
+        <div class="card-top-kpi">
+          <div class="card-badge badge-pending">Pending</div>
+          <div class="card-month">April</div>
+          <div class="card-year">2026</div>
+        </div>
+        <div class="pending-msg">Report in preparation</div>
+      </div>
+
+      <!-- MAR 2026 -->
+      <div class="report-card pending">
+        <div class="card-top-kpi">
+          <div class="card-badge badge-pending">Pending</div>
+          <div class="card-month">March</div>
+          <div class="card-year">2026</div>
+        </div>
+        <div class="pending-msg">Report in preparation</div>
+      </div>
+
+      <!-- FEB 2026 -->
+      <div class="report-card pending">
+        <div class="card-top-kpi">
+          <div class="card-badge badge-pending">Pending</div>
+          <div class="card-month">February</div>
+          <div class="card-year">2026</div>
+        </div>
+        <div class="pending-msg">Report in preparation</div>
+      </div>
+
+      <!-- JAN 2026 -->
+      <a class="report-card clickable" href="KPI_Report_January_2026_v4.html">
+        <div class="card-top-kpi">
+          <div class="card-badge badge-complete">Complete</div>
+          <div class="card-month">January</div>
+          <div class="card-year">2026</div>
+        </div>
+        <div class="card-body">
+          <div class="card-kpi-row">
+            <span class="kpi-chip on">KPI 1 ✓</span>
+            <span class="kpi-chip risk">KPI 2 64%</span>
+            <span class="kpi-chip on">KPI 3 16★</span>
+            <span class="kpi-chip on">KPI 4 ✓</span>
+            <span class="kpi-chip risk">KPI 5 86%</span>
+          </div>
+          <div class="card-stats">
+            <div><div class="stat-label">Clients</div><div class="stat-value">15</div></div>
+            <div><div class="stat-label">Reviews</div><div class="stat-value">16 ★★★★★</div></div>
+            <div><div class="stat-label">Invoice Rev.</div><div class="stat-value">$74,415</div></div>
+            <div><div class="stat-label">Services</div><div class="stat-value">189+</div></div>
+          </div>
+          <div class="card-footer">
+            <span class="card-link">Open Report →</span>
+            <span class="card-date">Feb 2026</span>
+          </div>
+        </div>
+      </a>
+
+    </div>
+  </div>
+
+  <!-- ══ CONCIERGE REPORTS TAB ══ -->
+  <div class="section" id="tab-concierge">
+
+    <div class="summary-strip">
+      <div>
+        <div class="strip-label">Reports Published</div>
+        <div class="strip-value">0</div>
+        <div class="strip-sub">Coming soon</div>
+      </div>
+      <div>
+        <div class="strip-label">Format</div>
+        <div class="strip-value">Monthly</div>
+        <div class="strip-sub">Groups · KPIs · Feedback · Projects</div>
+      </div>
+      <div>
+        <div class="strip-label">Cities</div>
+        <div class="strip-value">CTG + MDE</div>
+        <div class="strip-sub">Cartagena · Medellín</div>
+      </div>
+      <div>
+        <div class="strip-label">Team</div>
+        <div class="strip-value">3</div>
+        <div class="strip-sub">Carolina · Alia · Daniela</div>
+      </div>
+    </div>
+
+    <div class="section-header">
+      <div class="section-label">Concierge Monthly Reports · 2026</div>
+      <span style="font-family:'DM Mono',monospace;font-size:9px;color:var(--ink-muted)">Most recent first</span>
+    </div>
+    <div class="section-desc">Monthly operational reports — groups served, services delivered, client feedback, errors, and project updates. Complementary to the KPI reports.</div>
+
+    <div class="reports-grid">
+
+      <!-- JUN 2026 - In Progress -->
+      <div class="report-card pending">
+        <div class="card-top-concierge">
+          <div class="card-badge" style="background:rgba(201,168,76,0.15);color:var(--gold)">In Progress</div>
+          <div class="card-month">June</div>
+          <div class="card-year">2026</div>
+        </div>
+        <div class="pending-msg">Report in preparation</div>
+      </div>
+
+      <!-- MAY 2026 - Complete -->
+      <a class="report-card clickable" href="Concierge_Report_May_2026.html">
+        <div class="card-top-concierge">
+          <div class="card-badge badge-complete">Complete</div>
+          <div class="card-month">May</div>
+          <div class="card-year">2026</div>
+        </div>
+        <div class="card-body">
+          <div class="card-kpi-row">
+            <span class="kpi-chip on">CTG ✓</span>
+            <span class="kpi-chip on">MDE ✓</span>
+          </div>
+          <div class="card-stats">
+            <div><div class="stat-label">Clients</div><div class="stat-value">9</div></div>
+            <div><div class="stat-label">Cities</div><div class="stat-value">CTG + MDE</div></div>
+          </div>
+          <div class="card-footer">
+            <span class="card-link">Open Report →</span>
+            <span class="card-date">Jun 2026</span>
+          </div>
+        </div>
+      </a>
+
+    </div>
+  </div>
+
+  <!-- ══ ABOUT TAB ══ -->
+  <div class="section active" id="tab-about">
+
+    <div style="max-width:720px">
+      <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.25em;text-transform:uppercase;color:var(--ink-muted);margin-bottom:20px;padding-bottom:10px;border-bottom:1px solid var(--border)">About This Portal</div>
+
+      <div style="font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:300;color:var(--ink);margin-bottom:20px;line-height:1.2">Context &amp; <em style="color:var(--gold)">Responsibilities</em></div>
+
+      <p style="font-size:13px;color:var(--ink-soft);line-height:1.9;margin-bottom:36px">This portal centralizes all reporting for the Guest Concierge Area in Colombia — Cartagena and Medellín. The reports here are part of a formal performance tracking initiative launched in 2026, covering two core management responsibilities I've taken on as part of my role.</p>
+
+      <!-- RESPONSIBILITY CARDS -->
+      <div style="display:flex;flex-direction:column;gap:20px;margin-bottom:48px">
+
+        <!-- KPI Monitoring -->
+        <div style="background:white;border:1px solid var(--border);border-left:4px solid var(--gold);border-radius:12px;padding:28px 32px">
+          <div style="display:flex;align-items:flex-start;gap:16px">
+            <div style="background:var(--gold-pale);border-radius:8px;padding:10px 14px;font-family:'Cormorant Garamond',serif;font-size:22px;color:var(--amber);font-weight:400;line-height:1;flex-shrink:0">01</div>
+            <div>
+              <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:var(--amber);margin-bottom:6px">Concierge Area KPI Monitoring</div>
+              <div style="font-size:13px;font-weight:600;color:var(--ink);margin-bottom:10px">Define, track, and report on Concierge KPIs</div>
+              <p style="font-size:12px;color:var(--ink-soft);line-height:1.8;margin-bottom:14px">Responsible for establishing and maintaining the KPI framework for the Guest Concierge Area — defining what gets measured, collecting the data, and producing monthly and quarterly reports for management visibility.</p>
+              <div style="display:flex;flex-wrap:wrap;gap:6px">
+                <span style="font-family:'DM Mono',monospace;font-size:9px;background:var(--gold-pale);color:var(--amber);padding:3px 10px;border-radius:100px">KPI 1 · Revenue &amp; Services</span>
+                <span style="font-family:'DM Mono',monospace;font-size:9px;background:var(--gold-pale);color:var(--amber);padding:3px 10px;border-radius:100px">KPI 2 · Itinerary Delivery</span>
+                <span style="font-family:'DM Mono',monospace;font-size:9px;background:var(--gold-pale);color:var(--amber);padding:3px 10px;border-radius:100px">KPI 3 · Client Satisfaction</span>
+                <span style="font-family:'DM Mono',monospace;font-size:9px;background:var(--gold-pale);color:var(--amber);padding:3px 10px;border-radius:100px">KPI 4 · Execution Quality</span>
+                <span style="font-family:'DM Mono',monospace;font-size:9px;background:var(--gold-pale);color:var(--amber);padding:3px 10px;border-radius:100px">KPI 5 · Billing Timeliness</span>
+              </div>
+              <div style="margin-top:14px;font-size:11px;color:var(--ink-muted);line-height:1.7">
+                <strong style="color:var(--ink)">Where to find it:</strong> The <span style="font-family:'DM Mono',monospace;font-size:10px;background:var(--sand);padding:1px 5px;border-radius:3px">KPI Reports</span> tab — monthly and quarterly.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Monthly Report + Project Review -->
+        <div style="background:white;border:1px solid var(--border);border-left:4px solid var(--teal);border-radius:12px;padding:28px 32px">
+          <div style="display:flex;align-items:flex-start;gap:16px">
+            <div style="background:var(--teal-pale);border-radius:8px;padding:10px 14px;font-family:'Cormorant Garamond',serif;font-size:22px;color:var(--teal);font-weight:400;line-height:1;flex-shrink:0">02</div>
+            <div>
+              <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:var(--teal);margin-bottom:6px">Monthly Concierge Area Report</div>
+              <div style="font-size:13px;font-weight:600;color:var(--ink);margin-bottom:10px">Operational reporting + continuous improvement</div>
+              <p style="font-size:12px;color:var(--ink-soft);line-height:1.8;margin-bottom:14px">Responsible for preparing a monthly operational summary covering groups served, KPI highlights, client feedback, and project updates — for management visibility. This report also integrates a third responsibility: periodic review of initiatives, analysis of results and feedback, and implementation of improvement plans over time — especially as they relate to the concierge KPIs.</p>
+              <div style="display:flex;flex-wrap:wrap;gap:6px">
+                <span style="font-family:'DM Mono',monospace;font-size:9px;background:var(--teal-pale);color:var(--teal);padding:3px 10px;border-radius:100px">Groups served</span>
+                <span style="font-family:'DM Mono',monospace;font-size:9px;background:var(--teal-pale);color:var(--teal);padding:3px 10px;border-radius:100px">KPI highlights</span>
+                <span style="font-family:'DM Mono',monospace;font-size:9px;background:var(--teal-pale);color:var(--teal);padding:3px 10px;border-radius:100px">Client feedback</span>
+                <span style="font-family:'DM Mono',monospace;font-size:9px;background:var(--teal-pale);color:var(--teal);padding:3px 10px;border-radius:100px">Project updates</span>
+                <span style="font-family:'DM Mono',monospace;font-size:9px;background:var(--teal-pale);color:var(--teal);padding:3px 10px;border-radius:100px">Improvement plans</span>
+              </div>
+              <div style="margin-top:14px;font-size:11px;color:var(--ink-muted);line-height:1.7">
+                <strong style="color:var(--ink)">Where to find it:</strong> The <span style="font-family:'DM Mono',monospace;font-size:10px;background:var(--sand);padding:1px 5px;border-radius:3px">Concierge Reports</span> tab — monthly.
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- REPORT STRUCTURE -->
+      <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:var(--ink-muted);margin-bottom:16px">How the reports are structured</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:48px">
+        <div style="background:var(--sand);border-radius:10px;padding:18px">
+          <div style="font-size:11px;font-weight:600;color:var(--ink);margin-bottom:8px">KPI Report (monthly + quarterly)</div>
+          <ul style="list-style:none;font-size:11px;color:var(--ink-soft);line-height:2">
+            <li>· KPI 1 — Revenue &amp; Services per client</li>
+            <li>· KPI 2 — Itinerary delivery time</li>
+            <li>· KPI 3 — Guest satisfaction ratings</li>
+            <li>· KPI 4 — Error log &amp; accountability</li>
+            <li>· KPI 5 — Billing timeliness</li>
+            <li>· Executive summary + conclusions</li>
+          </ul>
+        </div>
+        <div style="background:var(--teal-pale);border-radius:10px;padding:18px">
+          <div style="font-size:11px;font-weight:600;color:var(--ink);margin-bottom:8px">Concierge Report (monthly)</div>
+          <ul style="list-style:none;font-size:11px;color:var(--ink-soft);line-height:2">
+            <li>· Groups served that month</li>
+            <li>· KPI performance highlights</li>
+            <li>· Client feedback &amp; satisfaction notes</li>
+            <li>· Operational updates by city</li>
+            <li>· Active projects &amp; initiatives</li>
+            <li>· Improvement actions implemented</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- TEAM -->
+      <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:var(--ink-muted);margin-bottom:16px">Team</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px">
+        <div style="background:white;border:1px solid var(--border);border-top:3px solid var(--gold);border-radius:10px;padding:18px;text-align:center">
+          <div style="font-family:'Cormorant Garamond',serif;font-size:20px;color:var(--ink);margin-bottom:4px">Carolina</div>
+          <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--amber);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:6px">Report Author</div>
+          <div style="font-size:11px;color:var(--ink-muted)">Cartagena · KPI Monitoring<br>Report preparation</div>
+        </div>
+        <div style="background:white;border:1px solid var(--border);border-top:3px solid var(--teal);border-radius:10px;padding:18px;text-align:center">
+          <div style="font-family:'Cormorant Garamond',serif;font-size:20px;color:var(--ink);margin-bottom:4px">Alia</div>
+          <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--teal);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:6px">Cartagena Concierge</div>
+          <div style="font-size:11px;color:var(--ink-muted)">Guest feedback collection<br>WhatsApp rating system</div>
+        </div>
+        <div style="background:white;border:1px solid var(--border);border-top:3px solid var(--mde);border-radius:10px;padding:18px;text-align:center">
+          <div style="font-family:'Cormorant Garamond',serif;font-size:20px;color:var(--ink);margin-bottom:4px">Daniela</div>
+          <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--mde);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:6px">Medellín Concierge</div>
+          <div style="font-size:11px;color:var(--ink-muted)">Guest operations<br>MDE client management</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<!-- FOOTER -->
+<div class="site-footer">
+  <div class="footer-logo">Two Travel</div>
+  <div class="footer-text">Guest Concierge · Reports Portal · Colombia 2026</div>
+  <div class="footer-text">Confidential · Internal Use Only</div>
+</div>
+
+<script>
+  function switchTab(id, el) {
+    event.preventDefault();
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+    document.getElementById('tab-' + id).classList.add('active');
+    el.classList.add('active');
+  }
+</script>
+
+</body>
+</html>
